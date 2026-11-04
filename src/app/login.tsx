@@ -1,5 +1,5 @@
+import { NativeStackNavigationProp, Stack, useNavigation } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Stack } from 'expo-router';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -45,6 +45,8 @@ function validarIdentificacao(valor: string): string | null {
   return null;
 }
 
+type NavigationProps = NativeStackNavigationProp<{formulario: undefined}>;
+
 export default function Login() {
   // Valores dos campos e controles da tela
   const [identificacao, setIdentificacao] = useState('');
@@ -52,6 +54,7 @@ export default function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const navigation = useNavigation<NavigationProps>();
 
   // Impede dois envios ao tocar rapidamente no botão.
   const envioEmAndamento = useRef(false);
@@ -259,7 +262,7 @@ export default function Login() {
                 accessibilityRole="button"
                 disabled={carregando}
                 style={({ pressed }) => [styles.botaoMatricula, pressed && styles.pressionado]}
-                onPress={fazerPreMatricula}
+                onPress={() => navigation.navigate('formulario')}
               >
                 <Text style={styles.textoMatricula}>Fazer Pré-Matrícula</Text>
               </Pressable>

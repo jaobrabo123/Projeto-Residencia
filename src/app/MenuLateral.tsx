@@ -1,25 +1,24 @@
-/** @jsxRuntime classic */
 import React from 'react';
 
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    SafeAreaView,
-    StatusBar,
     Alert,
     ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 import {
-    User,
-    X,
     CalendarDays,
     CircleCheck,
-    RefreshCw,
     LogOut,
+    RefreshCw,
+    User,
+    X,
 } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function App() {
