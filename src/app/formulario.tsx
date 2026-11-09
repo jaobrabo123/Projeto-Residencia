@@ -11,14 +11,11 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  type TextInputProps,
+  useWindowDimensions,
   View,
+  type TextInputProps,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// Envio da pré-matrícula.
-// Substitua pela URL do seu formulário no Formspree.
-const URL_ENVIO = "https://formspree.io/f/SEU_CODIGO_AQUI";
 
 type Turno = "Manhã" | "Tarde" | "Noite";
 
@@ -220,7 +217,6 @@ export default function Formulario() {
   const [dados, setDados] = useState<Dados>(DADOS_VAZIOS);
   const [etapa, setEtapa] = useState(0);
   const [mensagem, setMensagem] = useState("");
-  const [enviando, setEnviando] = useState(false);
 
   const ultimaEtapa = etapa === ETAPAS.length - 1;
 
@@ -239,8 +235,6 @@ export default function Formulario() {
   }
 
   function voltar() {
-    if (enviando) return;
-
     setMensagem("");
 
     if (etapa > 0) {
@@ -248,13 +242,11 @@ export default function Formulario() {
     } else if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/");
+      router.replace("/login");
     }
   }
 
-  async function avancar() {
-    if (enviando) return;
-
+  function avancar() {
     const erro = validarEtapa(etapa, dados);
 
     if (erro) {
@@ -267,42 +259,16 @@ export default function Formulario() {
       return;
     }
 
-    setEnviando(true);
+    // MVP sem back-end: a pré-matrícula não é enviada a nenhum servidor.
+    // Ao concluir, limpa o formulário e volta para o login.
     setDados(DADOS_VAZIOS);
     setEtapa(0);
-    Alert.alert("Sucesso!", "A pré-matrícula foi enviada com sucesso.", [
+    Alert.alert("Sucesso!", "A pré-matrícula foi concluída com sucesso.", [
       {
         text: "OK",
-        onPress: () =>
-          router.canGoBack() ? router.back() : router.replace("/"),
+        onPress: () => router.replace("/login"),
       },
     ]);
-
-    // try {
-    //   const resposta = await fetch(URL_ENVIO, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify(dados),
-    //   });
-
-    //   if (resposta.ok) {
-    //     setDados(DADOS_VAZIOS);
-    //     setEtapa(0);
-    //     Alert.alert("Sucesso!", "A pré-matrícula foi enviada com sucesso.", [
-    //       {
-    //         text: "OK",
-    //         onPress: () =>
-    //           router.canGoBack() ? router.back() : router.replace("/"),
-    //       },
-    //     ]);
-    //   } else {
-    //     setMensagem("Ocorreu um problema ao enviar. Tente novamente.");
-    //   }
-    // } catch {
-    //   setMensagem("Sem conexão com a internet ou erro no servidor.");
-    // } finally {
-    //   setEnviando(false);
-    // }
   }
 
   return (
@@ -584,7 +550,6 @@ export default function Formulario() {
                 pressed && styles.pressionado,
               ]}
               accessibilityRole="button"
-              disabled={enviando}
               onPress={voltar}
             >
               <Text style={styles.botaoVoltarTexto}>Voltar</Text>
@@ -594,19 +559,13 @@ export default function Formulario() {
           <Pressable
             style={({ pressed }) => [
               styles.botaoContinuar,
-              (pressed || enviando) && styles.pressionado,
+              pressed && styles.pressionado,
             ]}
             accessibilityRole="button"
-            accessibilityState={{ disabled: enviando, busy: enviando }}
-            disabled={enviando}
             onPress={avancar}
           >
             <Text style={styles.botaoContinuarTexto}>
-              {enviando
-                ? "Enviando..."
-                : ultimaEtapa
-                  ? "Enviar Pré-Matrícula"
-                  : "Continuar"}
+              {ultimaEtapa ? "Concluir Pré-Matrícula" : "Continuar"}
             </Text>
           </Pressable>
         </View>
@@ -641,6 +600,9 @@ function Entrada(props: TextInputProps) {
   );
 }
 
+// Altura de cada opção da lista do seletor (minHeight 48 + 1 de borda).
+const ALTURA_OPCAO = 49;
+
 // Lista de opções em um painel inferior (evita depender de um picker nativo).
 function Seletor({
   titulo,
@@ -656,6 +618,10 @@ function Seletor({
   aoSelecionar: (valor: string) => void;
 }) {
   const [aberto, setAberto] = useState(false);
+  const { height } = useWindowDimensions();
+
+  // A lista tem altura limitada (no máximo metade da tela) e rola quando há mais opções.
+  const alturaLista = Math.min(opcoes.length * ALTURA_OPCAO, height * 0.5);
 
   return (
     <>
@@ -678,11 +644,22 @@ function Seletor({
         animationType="slide"
         onRequestClose={() => setAberto(false)}
       >
-        <Pressable style={styles.fundoModal} onPress={() => setAberto(false)}>
-          <Pressable style={styles.painel}>
+        <View style={styles.fundoModal}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
+            onPress={() => setAberto(false)}
+          />
+          <View style={styles.painel}>
             <SafeAreaView edges={["bottom"]}>
               <Text style={styles.painelTitulo}>{titulo}</Text>
-              <ScrollView style={styles.painelLista}>
+              <ScrollView
+                style={{ maxHeight: alturaLista }}
+                nestedScrollEnabled
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator
+              >
                 {opcoes.map((opcao) => {
                   const ativa = opcao === valor;
 
@@ -711,8 +688,8 @@ function Seletor({
                 })}
               </ScrollView>
             </SafeAreaView>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </>
   );
@@ -862,7 +839,6 @@ const styles = StyleSheet.create({
   },
 
   painel: {
-    maxHeight: "65%",
     paddingTop: 18,
     paddingHorizontal: 20,
     borderTopLeftRadius: 28,
@@ -877,12 +853,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  painelLista: {
-    flexGrow: 0,
-  },
-
   opcao: {
-    minHeight: 48,
+    minHeight: ALTURA_OPCAO - 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React from "react";
 
 import {
@@ -36,9 +37,7 @@ export default function App() {
       {
         text: "Sair",
         style: "destructive",
-        onPress: () => {
-          Alert.alert("Sistema", "Você saiu da sua conta!");
-        },
+        onPress: () => router.replace("/login"),
       },
     ]);
   };
