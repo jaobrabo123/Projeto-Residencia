@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useRef, useState } from 'react';
+import type { TextInputProps } from 'react-native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,7 +11,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { TextInputProps } from 'react-native';
 
 // ---------------------------------------------------------------------------
 // Configuração
@@ -492,14 +492,16 @@ export default function Formulario() {
     const novoProtocolo = gerarProtocolo(dados.acad_ano_letivo.trim());
 
     try {
-      const resposta = await fetch(FORMSPREE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({ protocolo: novoProtocolo, ...dados }),
-      });
+      // Para a apresentação so precisa de frontend
+      const resposta = {ok: true}
+      // await fetch(FORMSPREE_URL, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     Accept: 'application/json',
+      //   },
+      //   body: JSON.stringify({ protocolo: novoProtocolo, ...dados }),
+      // });
 
       if (resposta.ok) {
         setProtocolo(novoProtocolo);
