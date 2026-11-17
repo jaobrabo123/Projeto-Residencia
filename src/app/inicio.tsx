@@ -182,7 +182,7 @@ const ABAS: {
     id: "boletim",
     rotulo: "Boletim",
     icone: BookOpen,
-    aoPressionar: () => avisarEmBreve("Boletim"),
+    aoPressionar: () => router.push("/boletim"),
   },
   {
     id: "servicos",
