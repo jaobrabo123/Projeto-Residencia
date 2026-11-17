@@ -1,18 +1,12 @@
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import {
   ArrowRight,
   Bell,
-  BookOpen,
   CircleAlert,
   CircleCheck,
-  Clock,
-  FileText,
-  House,
   Megaphone,
-  Menu,
   TriangleAlert,
 } from "lucide-react-native";
-import type { ComponentType } from "react";
 import { useState } from "react";
 import {
   Alert,
@@ -27,6 +21,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import BarraAbas from "@/components/BarraAbas";
 
 // Dados de exemplo enquanto o sistema da escola não está conectado.
 // Substituir por dados reais (login/API) quando estiverem disponíveis.
@@ -159,45 +155,6 @@ function avisarEmBreve(secao: string) {
   Alert.alert("Em breve", `A seção "${secao}" ainda não está disponível.`);
 }
 
-type Icone = ComponentType<{
-  size?: number;
-  color?: string;
-  strokeWidth?: number;
-}>;
-
-const ABAS: {
-  id: string;
-  rotulo: string;
-  icone: Icone;
-  aoPressionar?: () => void;
-}[] = [
-  { id: "inicio", rotulo: "Início", icone: House },
-  {
-    id: "horarios",
-    rotulo: "Horários",
-    icone: Clock,
-    aoPressionar: () => avisarEmBreve("Horários"),
-  },
-  {
-    id: "boletim",
-    rotulo: "Boletim",
-    icone: BookOpen,
-    aoPressionar: () => avisarEmBreve("Boletim"),
-  },
-  {
-    id: "servicos",
-    rotulo: "Serviços",
-    icone: FileText,
-    aoPressionar: () => avisarEmBreve("Serviços"),
-  },
-  {
-    id: "menu",
-    rotulo: "Menu",
-    icone: Menu,
-    aoPressionar: () => router.push("/MenuLateral"),
-  },
-];
-
 export default function Inicio() {
   const { width } = useWindowDimensions();
   const [avisoAtual, setAvisoAtual] = useState(0);
@@ -312,34 +269,7 @@ export default function Inicio() {
         </View>
       </ScrollView>
 
-      {/* Barra de navegação */}
-      <SafeAreaView edges={["bottom", "left", "right"]} style={styles.barra}>
-        <View style={styles.barraLinha}>
-          {ABAS.map((aba) => {
-            const ativa = aba.id === "inicio";
-            const IconeAba = aba.icone;
-
-            return (
-              <Pressable
-                key={aba.id}
-                style={styles.aba}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: ativa }}
-                onPress={aba.aoPressionar}
-              >
-                <View style={[styles.abaIcone, ativa && styles.abaIconeAtivo]}>
-                  <IconeAba size={20} color={ativa ? "#1D4ED8" : "#6B7A99"} />
-                </View>
-                <Text
-                  style={[styles.abaRotulo, ativa && styles.abaRotuloAtivo]}
-                >
-                  {aba.rotulo}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </SafeAreaView>
+      <BarraAbas ativa="inicio" />
     </View>
   );
 }
@@ -698,48 +628,5 @@ const styles = StyleSheet.create({
 
   pressionado: {
     opacity: 0.75,
-  },
-
-  // Barra de navegação
-  barra: {
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#E3E9F5",
-  },
-
-  barraLinha: {
-    flexDirection: "row",
-    paddingTop: 8,
-    paddingBottom: 6,
-    paddingHorizontal: 8,
-  },
-
-  aba: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-    minHeight: 48,
-  },
-
-  abaIcone: {
-    width: 44,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  abaIconeAtivo: {
-    backgroundColor: "#E3EBFF",
-  },
-
-  abaRotulo: {
-    color: "#6B7A99",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-
-  abaRotuloAtivo: {
-    color: "#1D4ED8",
   },
 });

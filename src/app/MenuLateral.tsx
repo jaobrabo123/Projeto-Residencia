@@ -1,16 +1,4 @@
-import { router } from "expo-router";
-import React from "react";
-
-import {
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-
+import { router, Stack } from "expo-router";
 import {
   CalendarDays,
   CircleCheck,
@@ -19,324 +7,455 @@ import {
   User,
   X,
 } from "lucide-react-native";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  Animated,
+  Easing,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function App() {
-  // Função para acessar as seções
-  const acessarSecao = (secao: string) => {
-    Alert.alert("Acessar seção", `Você selecionou: ${secao}`);
-  };
+const DURACAO = 220;
 
-  // Função para sair da conta
-  const sairDaConta = () => {
+// Dados de exemplo enquanto o sistema da escola não está conectado.
+const ALUNO = {
+  nome: "Ana Beatriz Silva",
+  matricula: "2024005847",
+};
+
+const ESCOLA = {
+  nome: "EMEF Prof. Adalberto Lima",
+  turno: "Turno Manhã · 2024",
+};
+
+export default function MenuLateral() {
+  const { width } = useWindowDimensions();
+  // A gaveta ocupa a maior parte da tela e deixa uma faixa da tela anterior
+  // escurecida à esquerda, como no protótipo.
+  const larguraGaveta = Math.min(Math.round(width * 0.82), 360);
+
+  const [progresso] = useState(() => new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.timing(progresso, {
+      toValue: 1,
+      duration: DURACAO,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [progresso]);
+
+  // Anima a saída antes de voltar para a tela de onde o menu foi aberto.
+  function fechar(aoTerminar?: () => void) {
+    Animated.timing(progresso, {
+      toValue: 0,
+      duration: DURACAO,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      if (aoTerminar) aoTerminar();
+      else if (router.canGoBack()) router.back();
+      else router.replace("/inicio");
+    });
+  }
+
+  function acessarSecao(secao: string) {
+    Alert.alert("Em breve", `A seção "${secao}" ainda não está disponível.`);
+  }
+
+  function abrirRematricula() {
+    // Fecha o menu e abre a rematrícula por cima da tela anterior.
+    fechar(() => {
+      if (router.canGoBack()) router.back();
+      router.push("/rematricula");
+    });
+  }
+
+  function sairDaConta() {
     Alert.alert("Sair da conta", "Deseja realmente sair da sua conta?", [
-      {
-        text: "Cancelar",
-        style: "cancel",
-      },
+      { text: "Cancelar", style: "cancel" },
       {
         text: "Sair",
         style: "destructive",
         onPress: () => router.replace("/login"),
       },
     ]);
-  };
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#1949C5" barStyle="light-content" />
+    <View style={styles.raiz}>
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          presentation: "transparentModal",
+          animation: "none",
+        }}
+      />
+      <StatusBar barStyle="light-content" />
 
-      {/* CABEÇALHO */}
-
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.avatar}>
-            <User size={23} color="#394A83" fill="#394A83" />
-          </View>
-
-          <View style={styles.studentInfo}>
-            <Text style={styles.headerTitle}>ME Mobile Educational</Text>
-
-            <Text style={styles.studentName}>Ana Beatriz Silva - Mat.</Text>
-
-            <Text style={styles.studentRegistration}>2024005847</Text>
-          </View>
-
-          <TouchableOpacity onPress={() => acessarSecao("Fechar menu")}>
-            <X size={23} color="#DCE5FF" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* CONTEÚDO PRINCIPAL */}
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* INFORMAÇÕES DA ESCOLA */}
-
-        <View style={styles.schoolCard}>
-          <Text style={styles.schoolLogo}>ME</Text>
-
-          <View style={styles.schoolInfo}>
-            <Text style={styles.schoolName}>EMEF Prof. Adalberto Lima</Text>
-
-            <Text style={styles.schoolShift}>Turno Manhã · 2024</Text>
-          </View>
-        </View>
-
-        {/* TÍTULO DA SEÇÃO */}
-
-        <Text style={styles.sectionTitle}>ACESSAR SEÇÃO</Text>
-
-        {/* CALENDÁRIO ESCOLAR */}
-
-        <MenuItem
-          titulo="Calendário Escolar"
-          descricao="Feriados, provas e eventos"
-          icone={<CalendarDays size={19} color="#2056ED" />}
-          onPress={() => acessarSecao("Calendário Escolar")}
+      {/* Fundo escurecido: tocar fora da gaveta fecha o menu */}
+      <Animated.View
+        style={[styles.fundo, { opacity: progresso }]}
+        pointerEvents="box-none"
+      >
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          accessibilityRole="button"
+          accessibilityLabel="Fechar menu"
+          onPress={() => fechar()}
         />
+      </Animated.View>
 
-        {/* ATIVIDADES E TAREFAS */}
+      <Animated.View
+        style={[
+          styles.gaveta,
+          {
+            width: larguraGaveta,
+            transform: [
+              {
+                translateX: progresso.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [larguraGaveta, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        {/* Cabeçalho */}
+        <SafeAreaView edges={["top"]} style={styles.cabecalho}>
+          <View style={styles.cabecalhoLinha}>
+            <View style={styles.avatar}>
+              <User size={24} color="#3B2A8C" fill="#3B2A8C" />
+            </View>
 
-        <MenuItem
-          titulo="Atividades e Tarefas"
-          descricao="Pendentes e concluídas"
-          icone={<CircleCheck size={20} color="#2056ED" />}
-          onPress={() => acessarSecao("Atividades e Tarefas")}
-        />
+            <View style={styles.aluno}>
+              <View style={styles.marca}>
+                <View style={styles.marcaSelo}>
+                  <Text style={styles.marcaSeloTexto}>ME</Text>
+                </View>
+                <Text style={styles.marcaNome} numberOfLines={1}>
+                  Mobile Educational
+                </Text>
+              </View>
 
-        {/* REMATRÍCULA */}
+              <Text style={styles.alunoDados}>
+                {ALUNO.nome} · Mat. {ALUNO.matricula}
+              </Text>
+            </View>
 
-        <MenuItem
-          titulo="Rematrícula"
-          descricao="Confirmar para 2025/2026"
-          icone={<RefreshCw size={20} color="#2056ED" />}
-          onPress={() => acessarSecao("Rematrícula")}
-        />
-      </ScrollView>
+            <Pressable
+              style={styles.fechar}
+              accessibilityRole="button"
+              accessibilityLabel="Fechar menu"
+              hitSlop={8}
+              onPress={() => fechar()}
+            >
+              <X size={22} color="#DCE6FF" />
+            </Pressable>
+          </View>
+        </SafeAreaView>
 
-      {/* RODAPÉ */}
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={sairDaConta}
-          activeOpacity={0.7}
+        {/* Conteúdo */}
+        <ScrollView
+          style={styles.conteudo}
+          contentContainerStyle={styles.conteudoInterno}
+          showsVerticalScrollIndicator={false}
         >
-          <LogOut size={17} color="#ED3030" />
+          <View style={styles.escola}>
+            <Text style={styles.escolaLogo}>ME</Text>
+            <View style={styles.escolaInfo}>
+              <Text style={styles.escolaNome}>{ESCOLA.nome}</Text>
+              <Text style={styles.escolaTurno}>{ESCOLA.turno}</Text>
+            </View>
+          </View>
 
-          <Text style={styles.logoutText}>Sair da conta</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <Text style={styles.secaoTitulo}>ACESSAR SEÇÃO</Text>
+
+          <ItemMenu
+            titulo="Calendário Escolar"
+            descricao="Feriados, provas e eventos"
+            icone={<CalendarDays size={20} color="#1D4ED8" />}
+            aoPressionar={() => acessarSecao("Calendário Escolar")}
+          />
+          <ItemMenu
+            titulo="Atividades e Tarefas"
+            descricao="Pendentes e concluídas"
+            icone={<CircleCheck size={20} color="#1D4ED8" />}
+            aoPressionar={() => acessarSecao("Atividades e Tarefas")}
+          />
+          <ItemMenu
+            titulo="Rematrícula"
+            descricao="Confirmar para 2025/2026"
+            icone={<RefreshCw size={20} color="#1D4ED8" />}
+            aoPressionar={abrirRematricula}
+          />
+        </ScrollView>
+
+        {/* Rodapé */}
+        <SafeAreaView edges={["bottom"]} style={styles.rodape}>
+          <Pressable
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.sair,
+              pressed && styles.pressionado,
+            ]}
+            onPress={sairDaConta}
+          >
+            <LogOut size={18} color="#E5252A" />
+            <Text style={styles.sairTexto}>Sair da conta</Text>
+          </Pressable>
+        </SafeAreaView>
+      </Animated.View>
+    </View>
   );
 }
 
-// Componente de opção do menu
-// Fica fora do App para não ser recriado a cada renderização.
-function MenuItem({
+function ItemMenu({
   titulo,
   descricao,
   icone,
-  onPress,
+  aoPressionar,
 }: {
   titulo: string;
   descricao: string;
-  icone: React.ReactNode;
-  onPress: () => void;
+  icone: ReactNode;
+  aoPressionar: () => void;
 }) {
   return (
-    <TouchableOpacity
-      style={styles.menuItem}
-      onPress={onPress}
-      activeOpacity={0.7}
+    <Pressable
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.item, pressed && styles.pressionado]}
+      onPress={aoPressionar}
     >
-      <View style={styles.iconContainer}>{icone}</View>
+      <View style={styles.itemIcone}>{icone}</View>
 
-      <View style={styles.menuTextContainer}>
-        <Text style={styles.menuTitle}>{titulo}</Text>
-
-        <Text style={styles.menuDescription}>{descricao}</Text>
+      <View style={styles.itemTexto}>
+        <Text style={styles.itemTitulo}>{titulo}</Text>
+        <Text style={styles.itemDescricao}>{descricao}</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
-// ESTILIZAÇÃO DO MENU
-
 const styles = StyleSheet.create({
-  container: {
+  raiz: {
     flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+
+  fundo: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "rgba(11,27,68,0.45)",
+  },
+
+  gaveta: {
+    height: "100%",
     backgroundColor: "#FFFFFF",
   },
 
-  // CABEÇALHO
-
-  header: {
-    backgroundColor: "#1949C5",
-    paddingHorizontal: 17,
-    paddingTop: 20,
-    paddingBottom: 23,
+  // Cabeçalho
+  cabecalho: {
+    backgroundColor: "#1D4ED8",
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
 
-  headerContent: {
+  cabecalhoLinha: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
 
   avatar: {
-    width: 43,
-    height: 43,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderRadius: 13,
-    justifyContent: "center",
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.16)",
     alignItems: "center",
+    justifyContent: "center",
   },
 
-  studentInfo: {
+  aluno: {
     flex: 1,
   },
 
-  headerTitle: {
-    fontSize: 13,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 3,
-  },
-
-  studentName: {
-    fontSize: 11,
-    color: "#E0E8FF",
-  },
-
-  studentRegistration: {
-    fontSize: 11,
-    color: "#E0E8FF",
-    marginTop: 2,
-  },
-
-  // CONTEÚDO
-
-  content: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingTop: 14,
-  },
-
-  // CARTÃO DA ESCOLA
-
-  schoolCard: {
-    height: 59,
-    backgroundColor: "#F0F3FC",
-    borderWidth: 1,
-    borderColor: "#D3DDF5",
-    borderRadius: 15,
+  marca: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    gap: 12,
-    marginBottom: 16,
+    gap: 6,
   },
 
-  schoolLogo: {
+  marcaSelo: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 5,
+    backgroundColor: "rgba(255,255,255,0.22)",
+  },
+
+  marcaSeloTexto: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "bold",
+  },
+
+  marcaNome: {
+    flexShrink: 1,
+    color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "bold",
-    color: "#1749C5",
   },
 
-  schoolInfo: {
+  alunoDados: {
+    color: "#DCE6FF",
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 4,
+  },
+
+  fechar: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-start",
+  },
+
+  // Conteúdo
+  conteudo: {
     flex: 1,
   },
 
-  schoolName: {
-    fontSize: 12,
-    color: "#173477",
-    marginBottom: 3,
+  conteudoInterno: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
 
-  schoolShift: {
-    fontSize: 11,
-    color: "#7484A8",
+  escola: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#D3DDF4",
+    backgroundColor: "#EEF2FF",
   },
 
-  // TÍTULO DA SEÇÃO
-
-  sectionTitle: {
-    fontSize: 11,
+  escolaLogo: {
+    color: "#1D4ED8",
+    fontSize: 16,
     fontWeight: "bold",
-    color: "#7C8BA9",
-    letterSpacing: 1,
-    marginHorizontal: 3,
+  },
+
+  escolaInfo: {
+    flex: 1,
+  },
+
+  escolaNome: {
+    color: "#1D4ED8",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  escolaTurno: {
+    color: "#7486A8",
+    fontSize: 12,
+    marginTop: 3,
+  },
+
+  secaoTitulo: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 1.2,
+    marginLeft: 4,
     marginBottom: 12,
   },
 
-  // OPÇÕES DO MENU
-
-  menuItem: {
-    height: 61,
-    backgroundColor: "#F7F8FC",
-    borderWidth: 1,
-    borderColor: "#D5DEF1",
-    borderRadius: 15,
+  // Itens
+  item: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    marginBottom: 7,
+    gap: 12,
+    padding: 14,
+    marginBottom: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#D5DEF1",
+    backgroundColor: "#F4F6FD",
   },
 
-  iconContainer: {
-    width: 35,
-    height: 35,
-    backgroundColor: "#EDF1FF",
-    borderRadius: 50,
-    justifyContent: "center",
+  itemIcone: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E8EDFF",
     alignItems: "center",
-    marginRight: 11,
+    justifyContent: "center",
   },
 
-  menuTextContainer: {
+  itemTexto: {
     flex: 1,
   },
 
-  menuTitle: {
-    fontSize: 13,
-    fontWeight: "bold",
-    color: "#202E50",
-    marginBottom: 3,
+  itemTitulo: {
+    color: "#0B1B44",
+    fontSize: 15,
+    fontWeight: "600",
   },
 
-  menuDescription: {
-    fontSize: 11,
-    color: "#7D8CAB",
+  itemDescricao: {
+    color: "#7486A8",
+    fontSize: 12,
+    marginTop: 3,
   },
 
-  // RODAPÉ
-
-  footer: {
-    height: 85,
+  // Rodapé
+  rodape: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
     borderTopWidth: 1,
-    borderTopColor: "#D5DEF1",
-    paddingHorizontal: 14,
-    paddingTop: 18,
+    borderTopColor: "#E3E9F5",
     backgroundColor: "#FFFFFF",
   },
 
-  logoutButton: {
-    height: 44,
-    backgroundColor: "#FFE5E5",
-    borderWidth: 1,
-    borderColor: "#FFC4C4",
-    borderRadius: 14,
+  sair: {
+    height: 48,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 9,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#FFC4C4",
+    backgroundColor: "#FFE3E3",
   },
 
-  logoutText: {
-    fontSize: 13,
-    color: "#ED3030",
-    fontWeight: "500",
+  sairTexto: {
+    color: "#E5252A",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  pressionado: {
+    opacity: 0.75,
   },
 });

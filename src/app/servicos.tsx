@@ -1,3 +1,4 @@
+import { router, Stack } from "expo-router";
 import React from "react";
 
 import {
@@ -11,20 +12,10 @@ import {
   View,
 } from "react-native";
 
-import {
-  ArrowRight,
-  BookOpen,
-  Clipboard,
-  Clock,
-  FileText,
-  Home,
-  Menu,
-  Plus,
-} from "lucide-react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { ArrowRight, Clipboard, Plus } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import BarraAbas from "@/components/BarraAbas";
 
 type StatusProtocolo = "analise" | "aprovado" | "concluido";
 
@@ -48,10 +39,10 @@ const SERVICOS = [
   { icone: "📋", titulo: "Histórico", descricao: "Histórico escolar" },
 ];
 
-const ATALHOS = [
+const ATALHOS: { icone: string; titulo: string; rota?: "/rematricula" }[] = [
   { icone: "🗓️", titulo: "Calendário" },
   { icone: "✅", titulo: "Atividades" },
-  { icone: "🔄", titulo: "Rematrícula" },
+  { icone: "🔄", titulo: "Rematrícula", rota: "/rematricula" },
 ];
 
 const PROTOCOLOS: Protocolo[] = [
@@ -68,6 +59,7 @@ export default function Servicos() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
+      <Stack.Screen options={{ headerShown: false }} />
       <StatusBar backgroundColor="#3D3BC7" barStyle="light-content" />
 
       <View style={styles.screen}>
@@ -102,7 +94,7 @@ export default function Servicos() {
                 key={a.titulo}
                 style={styles.quickItem}
                 activeOpacity={0.7}
-                onPress={() => acessar(a.titulo)}
+                onPress={() => (a.rota ? router.push(a.rota) : acessar(a.titulo))}
               >
                 <Text style={styles.quickIcon}>{a.icone}</Text>
                 <Text style={styles.quickText}>{a.titulo}</Text>
@@ -132,7 +124,7 @@ export default function Servicos() {
           ))}
         </ScrollView>
 
-        <BottomTabs onPress={acessar} />
+        <BarraAbas ativa="servicos" corAtiva="#4338CA" fundoAtivo="#EEEEFD" />
       </View>
     </SafeAreaView>
   );
@@ -204,41 +196,6 @@ function ProtocolItem({
         </View>
       </View>
     </TouchableOpacity>
-  );
-}
-
-function BottomTabs({ onPress }: { onPress: (nome: string) => void }) {
-  const insets = useSafeAreaInsets();
-
-  const abas = [
-    { nome: "Início", icone: Home },
-    { nome: "Horários", icone: Clock },
-    { nome: "Boletim", icone: BookOpen },
-    { nome: "Serviços", icone: FileText },
-    { nome: "Menu", icone: Menu },
-  ];
-
-  return (
-    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-      {abas.map(({ nome, icone: Icone }) => {
-        const ativa = nome === "Serviços";
-        const cor = ativa ? "#4338CA" : "#6B7194";
-
-        return (
-          <TouchableOpacity
-            key={nome}
-            style={styles.tabItem}
-            activeOpacity={0.7}
-            onPress={() => onPress(nome)}
-          >
-            <View style={[styles.tabIconWrapper, ativa && styles.tabIconActive]}>
-              <Icone size={20} color={cor} />
-            </View>
-            <Text style={[styles.tabText, { color: cor }]}>{nome}</Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
   );
 }
 
@@ -456,38 +413,6 @@ const styles = StyleSheet.create({
 
   statusText: {
     fontSize: 12.5,
-    fontWeight: "600",
-  },
-
-  tabBar: {
-    flexDirection: "row",
-    paddingTop: 10,
-    paddingHorizontal: 8,
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#DCDFF0",
-  },
-
-  tabItem: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-
-  tabIconWrapper: {
-    width: 46,
-    height: 30,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  tabIconActive: {
-    backgroundColor: "#EEEEFD",
-  },
-
-  tabText: {
-    fontSize: 11,
     fontWeight: "600",
   },
 });
