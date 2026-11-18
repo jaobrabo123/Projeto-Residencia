@@ -155,6 +155,45 @@ function avisarEmBreve(secao: string) {
   Alert.alert("Em breve", `A seção "${secao}" ainda não está disponível.`);
 }
 
+type Icone = ComponentType<{
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
+}>;
+
+const ABAS: {
+  id: string;
+  rotulo: string;
+  icone: Icone;
+  aoPressionar?: () => void;
+}[] = [
+  { id: "inicio", rotulo: "Início", icone: House },
+  {
+    id: "horarios",
+    rotulo: "Horários",
+    icone: Clock,
+    aoPressionar: () => avisarEmBreve("Horários"),
+  },
+  {
+    id: "boletim",
+    rotulo: "Boletim",
+    icone: BookOpen,
+    aoPressionar: () => router.push("/boletim"),
+  },
+  {
+    id: "servicos",
+    rotulo: "Serviços",
+    icone: FileText,
+    aoPressionar: () => avisarEmBreve("Serviços"),
+  },
+  {
+    id: "menu",
+    rotulo: "Menu",
+    icone: Menu,
+    aoPressionar: () => router.push("/MenuLateral"),
+  },
+];
+
 export default function Inicio() {
   const { width } = useWindowDimensions();
   const [avisoAtual, setAvisoAtual] = useState(0);

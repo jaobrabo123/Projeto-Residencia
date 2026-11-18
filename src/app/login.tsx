@@ -17,22 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Validação da matrícula ou CPF
-function validarIdentificacao(valor: string): string | null {
-  const texto = valor.trim();
-
-  if (!texto) {
-    return "Informe sua matrícula ou CPF.";
-  }
-
-  // Aceita matrícula numérica ou CPF completo no formato 000.000.000-00.
-  // O tamanho da matrícula e a validade do cadastro dependem da escola.
-  if (!/^\d+$/.test(texto) && !/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(texto)) {
-    return "Use apenas números na matrícula ou CPF. Para CPF formatado, use 000.000.000-00.";
-  }
-
-  return null;
-}
+import { validarIdentificacao } from "@/utils/validacao";
 
 type NavigationProps = NativeStackNavigationProp<{ formulario: undefined }>;
 
@@ -67,9 +52,8 @@ export default function Login() {
   }
 
   function recuperarSenha() {
-    setMensagem(
-      "A recuperação de senha não está disponível nesta versão do aplicativo.",
-    );
+    setMensagem("");
+    router.push("/esqueci-senha");
   }
 
   return (
