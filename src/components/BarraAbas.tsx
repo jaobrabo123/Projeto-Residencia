@@ -25,7 +25,7 @@ type Aba = {
 const ABAS: Aba[] = [
   { id: "inicio", rotulo: "Início", icone: House, rota: "/inicio" },
   { id: "horarios", rotulo: "Horários", icone: Clock, rota: "/horarios" },
-  { id: "boletim", rotulo: "Boletim", icone: BookOpen },
+  { id: "boletim", rotulo: "Boletim", icone: BookOpen, rota: "/boletim" },
   { id: "servicos", rotulo: "Serviços", icone: FileText, rota: "/servicos" },
   {
     id: "menu",

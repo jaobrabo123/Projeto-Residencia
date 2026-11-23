@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import BarraAbas from "@/components/BarraAbas";
 import { CartaoDisciplina, type Destaque } from "@/components/cartao-disciplina";
 
 // ---------------------------------------------------------------------------
@@ -275,6 +276,8 @@ export default function Boletim() {
           </Text>
         </View>
       </ScrollView>
+
+      <BarraAbas ativa="boletim" />
     </View>
   );
 }

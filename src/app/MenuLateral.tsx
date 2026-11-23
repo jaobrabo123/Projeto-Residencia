@@ -1,4 +1,4 @@
-import { router, Stack } from "expo-router";
+import { type Href, router, Stack } from "expo-router";
 import {
   CalendarDays,
   CircleCheck,
@@ -13,6 +13,7 @@ import {
   Alert,
   Animated,
   Easing,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -67,26 +68,34 @@ export default function MenuLateral() {
     });
   }
 
-  function acessarSecao(secao: string) {
-    Alert.alert("Em breve", `A seção "${secao}" ainda não está disponível.`);
-  }
-
-  function abrirRematricula() {
-    // Fecha o menu e abre a rematrícula por cima da tela anterior.
+  function abrirTela(rota: Href) {
+    // Fecha o menu e abre a tela escolhida por cima da tela anterior,
+    // para que o botão voltar retorne de onde o menu foi aberto.
     fechar(() => {
       if (router.canGoBack()) router.back();
-      router.push("/rematricula");
+      router.push(rota);
     });
   }
 
+  function encerrarSessao() {
+    // Descarta todas as telas empilhadas (menu + telas internas) antes de
+    // abrir o login, para que o botão voltar não leve de volta ao app.
+    if (router.canDismiss()) router.dismissAll();
+    router.replace("/login");
+  }
+
   function sairDaConta() {
+    // No web o Alert com botões não é exibido, então usa o confirm do navegador.
+    if (Platform.OS === "web") {
+      if (window.confirm("Deseja realmente sair da sua conta?")) {
+        encerrarSessao();
+      }
+      return;
+    }
+
     Alert.alert("Sair da conta", "Deseja realmente sair da sua conta?", [
       { text: "Cancelar", style: "cancel" },
-      {
-        text: "Sair",
-        style: "destructive",
-        onPress: () => router.replace("/login"),
-      },
+      { text: "Sair", style: "destructive", onPress: encerrarSessao },
     ]);
   }
 
@@ -184,19 +193,19 @@ export default function MenuLateral() {
             titulo="Calendário Escolar"
             descricao="Feriados, provas e eventos"
             icone={<CalendarDays size={20} color="#1D4ED8" />}
-            aoPressionar={() => acessarSecao("Calendário Escolar")}
+            aoPressionar={() => abrirTela("/calendario")}
           />
           <ItemMenu
             titulo="Atividades e Tarefas"
             descricao="Pendentes e concluídas"
             icone={<CircleCheck size={20} color="#1D4ED8" />}
-            aoPressionar={() => acessarSecao("Atividades e Tarefas")}
+            aoPressionar={() => abrirTela("/atividades")}
           />
           <ItemMenu
             titulo="Rematrícula"
             descricao="Confirmar para 2025/2026"
             icone={<RefreshCw size={20} color="#1D4ED8" />}
-            aoPressionar={abrirRematricula}
+            aoPressionar={() => abrirTela("/rematricula")}
           />
         </ScrollView>
 

@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import {
   ArrowRight,
   Bell,
@@ -155,6 +155,10 @@ function avisarEmBreve(secao: string) {
   Alert.alert("Em breve", `A seção "${secao}" ainda não está disponível.`);
 }
 
+function abrirAtividades() {
+  router.push("/atividades");
+}
+
 export default function Inicio() {
   const { width } = useWindowDimensions();
   const [avisoAtual, setAvisoAtual] = useState(0);
@@ -256,7 +260,7 @@ export default function Inicio() {
             <Pressable
               style={styles.verTodas}
               accessibilityRole="button"
-              onPress={() => avisarEmBreve("Atividades e Tarefas")}
+              onPress={abrirAtividades}
             >
               <Text style={styles.verTodasTexto}>Ver todas</Text>
               <ArrowRight size={13} color="#1D4ED8" />
@@ -313,7 +317,7 @@ function CartaoAtividade({ atividade }: { atividade: Atividade }) {
     <Pressable
       accessibilityRole="button"
       style={({ pressed }) => [styles.atividade, pressed && styles.pressionado]}
-      onPress={() => avisarEmBreve("Atividades e Tarefas")}
+      onPress={abrirAtividades}
     >
       <View
         style={[styles.atividadeIcone, urgente && styles.atividadeIconeUrgente]}

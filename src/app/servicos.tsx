@@ -1,4 +1,4 @@
-import { router, Stack } from "expo-router";
+import { type Href, router, Stack } from "expo-router";
 import React from "react";
 
 import {
@@ -16,40 +16,44 @@ import { ArrowRight, Clipboard, Plus } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BarraAbas from "@/components/BarraAbas";
+import { PROTOCOLOS, STATUS, type Protocolo } from "@/data/protocolos";
 
-type StatusProtocolo = "analise" | "aprovado" | "concluido";
-
-type Protocolo = {
+const SERVICOS: {
+  icone: string;
   titulo: string;
-  codigo: string;
-  data: string;
-  status: StatusProtocolo;
-};
-
-const STATUS = {
-  analise: { rotulo: "Em análise", cor: "#D97706", fundo: "#FBF0C0" },
-  aprovado: { rotulo: "Aprovado", cor: "#059669", fundo: "#D9F7E6" },
-  concluido: { rotulo: "Concluído", cor: "#4338CA", fundo: "#EEEEFD" },
-};
-
-const SERVICOS = [
-  { icone: "🏫", titulo: "Troca de Escola", descricao: "Solicitar transferência" },
-  { icone: "📝", titulo: "Segunda Chamada", descricao: "Solicitação de prova" },
-  { icone: "📄", titulo: "Declaração", descricao: "Matrícula ativa" },
-  { icone: "📋", titulo: "Histórico", descricao: "Histórico escolar" },
+  descricao: string;
+  rota: Href;
+}[] = [
+  {
+    icone: "🏫",
+    titulo: "Troca de Escola",
+    descricao: "Solicitar transferência",
+    rota: { pathname: "/novo-protocolo", params: { tipo: "troca-escola" } },
+  },
+  {
+    icone: "📝",
+    titulo: "Segunda Chamada",
+    descricao: "Solicitação de prova",
+    rota: { pathname: "/novo-protocolo", params: { tipo: "segunda-chamada" } },
+  },
+  {
+    icone: "📄",
+    titulo: "Declaração",
+    descricao: "Matrícula ativa",
+    rota: { pathname: "/novo-protocolo", params: { tipo: "declaracao" } },
+  },
+  {
+    icone: "📋",
+    titulo: "Histórico",
+    descricao: "Histórico escolar",
+    rota: "/historico",
+  },
 ];
 
-const ATALHOS: { icone: string; titulo: string; rota?: "/rematricula" }[] = [
-  { icone: "🗓️", titulo: "Calendário" },
-  { icone: "✅", titulo: "Atividades" },
+const ATALHOS: { icone: string; titulo: string; rota?: Href }[] = [
+  { icone: "🗓️", titulo: "Calendário", rota: "/calendario" },
+  { icone: "✅", titulo: "Atividades", rota: "/atividades" },
   { icone: "🔄", titulo: "Rematrícula", rota: "/rematricula" },
-];
-
-const PROTOCOLOS: Protocolo[] = [
-  { titulo: "Troca de Escola", codigo: "P20240087", data: "15/08/2024", status: "analise" },
-  { titulo: "Segunda Chamada de Prova", codigo: "P20240063", data: "02/08/2024", status: "aprovado" },
-  { titulo: "Declaração Escolar", codigo: "P20240041", data: "20/07/2024", status: "concluido" },
-  { titulo: "Histórico Escolar", codigo: "P20240028", data: "05/07/2024", status: "concluido" },
 ];
 
 export default function Servicos() {
@@ -83,7 +87,7 @@ export default function Servicos() {
                 icone={s.icone}
                 titulo={s.titulo}
                 descricao={s.descricao}
-                onPress={() => acessar(s.titulo)}
+                onPress={() => router.push(s.rota)}
               />
             ))}
           </View>
@@ -108,7 +112,7 @@ export default function Servicos() {
             <TouchableOpacity
               style={styles.newButton}
               activeOpacity={0.8}
-              onPress={() => acessar("Novo protocolo")}
+              onPress={() => router.push("/novo-protocolo")}
             >
               <Plus size={15} color="#FFFFFF" />
               <Text style={styles.newButtonText}>Novo</Text>
@@ -119,7 +123,12 @@ export default function Servicos() {
             <ProtocolItem
               key={p.codigo}
               protocolo={p}
-              onPress={() => acessar(`Protocolo ${p.codigo}`)}
+              onPress={() =>
+                router.push({
+                  pathname: "/protocolo",
+                  params: { codigo: p.codigo },
+                })
+              }
             />
           ))}
         </ScrollView>
